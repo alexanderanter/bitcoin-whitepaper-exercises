@@ -3,66 +3,58 @@ let poems = [
   "Carpe diem",
   "hasta la victoria que siempre!",
 ];
-let blockchain = [];
 
-function Block(textData, index, prevHash) {
+function Block(textData, index, prevHash, timestamp, hash) {
   this.poem = textData;
   this.index = index;
-  this.timestamp = Date.now();
+  this.timestamp = timestamp;
   this.prevHash = prevHash;
-  if (blockchain.length === 0) {
-    this.hash = "000000";
-  } else {
-    this.hash = SHA256(this.poem + this.index + this.timestamp + prevHash);
-  }
+  this.hash = hash;
 }
 
-let genesisBlock = new Block(poems[0], 0, "somethingstupid");
-poems = poems.filter((element) => element !== poems[0]);
+let blockchain = poems.map(function (poem, index, lastAddedBlock) {
+  let currentTime = Date.now();
+  let prevHash = index === 0 ? "gensisiblockprevhash" : lastAddedBlock.hash;
+  let hash =
+    index === 0
+      ? "000000"
+      : generateHash(poem + index + currentTime + lastAddedBlock.hash);
 
-// add block to blockchain
-blockchain = [...blockchain, genesisBlock];
-
-poems.map(function (poem, index) {
-  let lastBlockAdded = blockchain[blockchain.length - 1];
-
-  let a = new Block(poem, lastBlockAdded.index + 1, lastBlockAdded.hash);
-  blockchain = [...blockchain, a];
+  lastAddedBlock = new Block(poem, index, prevHash, currentTime, hash);
+  return lastAddedBlock;
 });
 
+function generateHash(poem, index, timestamp, prevHash) {
+  SHA256(poem + index + timestamp + prevHash);
+}
+
 function verifyChain() {
-  blockchain.map(function (block) {
-    verifyBlock(block);
-  });
+  return (
+    blockchain
+      .map(function (block) {
+        return verifyBlock(block);
+      })
+      .filter((element) => element === false).length === 0
+  );
 }
 
 function hashCheck(block) {
-  if (
+  return (
     block.hash ===
-    SHA256(block.poem + block.index + block.timestamp + block.prevHash)
-  ) {
-    return true;
-  } else if (block.index == 0) {
-    if (block.hash === "000000") {
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
+      generateHash(
+        block.poem + block.index + block.timestamp + block.prevHash
+      ) ||
+    (block.index === 0 && block.hash === "000000")
+  );
 }
+
 function verifyBlock(block) {
-  if (
+  return (
     block.index >= 0 &&
     block.poem != "" &&
     block.prevHash != "" &&
-    hashCheck(block) === true
-  ) {
-    console.log("verified" + block.index);
-  } else {
-    console.log("fail" + block.index);
-  }
+    hashCheck(block)
+  );
 }
 
-verifyChain();
+console.log(verifyChain());
