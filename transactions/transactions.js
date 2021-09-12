@@ -99,27 +99,39 @@ async function createSignature(text, privKey) {
   return (await openpgp.sign(options)).data;
 }
 
-let blockchain;
+let blockchain = [];
+blockchain = [
+  ...blockchain,
+  new Block("0", 0, "prevhash", Date.now(), "000000"),
+];
+
 async function getBlockChain() {
   const transactions = await Promise.all(
     poems.map(async (poem) => {
       return authorizeTransaction(createTransaction(poem));
     })
   );
-  let lastAddedBlock;
-  blockchain = transactions.map(function (transaction, index) {
-    let currentTime = Date.now();
-    let prevHash = index === 0 ? "gensisiblockprevhash" : lastAddedBlock.hash;
-    let hash =
-      index === 0
-        ? "000000"
-        : generateHash(
-            transaction.data + index + currentTime + lastAddedBlock.hash
-          );
+  let lastAddedBlock = blockchain[blockchain.length - 1];
 
-    lastAddedBlock = new Block(transaction, index, prevHash, currentTime, hash);
-    return lastAddedBlock;
-  });
+  // [...blockchain, new Block()];
+  let currentTime = Date.now();
+
+  blockchain = [
+    ...blockchain,
+    new Block(
+      transactions,
+      lastAddedBlock.index + 1,
+      lastAddedBlock.hash,
+      currentTime,
+      generateHash(
+        transactions +
+          (lastAddedBlock.index + 1) +
+          currentTime +
+          lastAddedBlock.hash
+      )
+    ),
+  ];
+
+  console.log(verifyChain);
 }
-
 getBlockChain();
