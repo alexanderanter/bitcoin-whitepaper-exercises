@@ -1,0 +1,8 @@
+{
+  "name": "exercises-transactions",
+  "main": "./js/main.js",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "openpgp": "~3.0.8"
+  }
+}

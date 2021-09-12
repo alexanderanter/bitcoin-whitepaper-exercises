@@ -1,7 +1,12 @@
 "use strict";
 
+var path = require("path");
+var fs = require("fs");
+var crypto = require("crypto");
+var openpgp = require("openpgp");
+
 let poems = [
-  "violets are blue, I love you",
+  "violets are blue, I lovssssssssse you",
   "Carpe diem",
   "hasta la victoria que siempre!",
 ];
@@ -59,4 +64,22 @@ function verifyBlock(block) {
   );
 }
 
-console.log(verifyChain());
+function Transaction(data, hash) {
+  this.data = data;
+  this.hash = hash;
+}
+function createTransaction(poem) {
+  return new Transaction(poem, transactionHash(poem));
+}
+
+function transactionHash(data) {
+  return SHA256(data);
+}
+
+function authorizeTransaction(transaction) {
+  transaction.pubKey = "test";
+  console.log(transaction.pubKey);
+}
+
+let transaction = createTransaction(poems[0]);
+authorizeTransaction(transaction);
